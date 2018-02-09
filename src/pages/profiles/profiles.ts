@@ -16,7 +16,7 @@ export class ProfilesPage {
     github_user = '';
 
     constructor(public navCtrl: NavController, public navParams: NavParams, private githubService: GithubServiceProvider,
-                private loadingCtrl: LoadingController, private toastController: ToastController) {
+                private loadingCtrl: LoadingController, private toastCtrl: ToastController) {
 
     }
 
@@ -25,19 +25,15 @@ export class ProfilesPage {
     }
 
     onSubmit() {
-        var that = this;
-        var loader = this.loadingCtrl.create({
-            content:  "Please wait..."
-        })
-        loader.present();
+
         this.getProfile(this.github_user);
         this.github_user = '';
-        loader.dismiss();
     }
 
     reset() {
         this.profiles = '';
         this.github_user = '';
+        this.repos = '';
     }
 
     showRepos(github_user) {
@@ -45,15 +41,47 @@ export class ProfilesPage {
     }
 
     getProfile(username) {
+        let loader = this.loadingCtrl.create({
+            content:  "Please wait..."
+        });
+        loader.present();
         this.githubService.getProfile(username).subscribe(response => {
            this.profiles = response;
-        });
+        },
+        error => {
+            loader.dismiss();
+            let toast = this.toastCtrl.create({
+                message: error.error.message,
+                duration: 3000,
+                position: 'top'
+            });
+            toast.present();
+        },
+            () =>{
+                loader.dismiss();
+            });
     }
 
     getRepos(username) {
+        let loader = this.loadingCtrl.create({
+            content:  "Please wait..."
+        });
+        loader.present();
         this.githubService.getRepos(username).subscribe(res =>{
             this.repos = res;
-        })
+        },
+          error => {
+              loader.dismiss();
+              let toast = this.toastCtrl.create({
+                  message: error.error.message,
+                  duration: 3000,
+                  position: 'top'
+              });
+              toast.present();
+        },
+            () => {
+                loader.dismiss();
+            })
     }
 
     repoTapped(event, repo) {
